@@ -15,15 +15,48 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package engine
+// +build !root
 
-// Error is a constant error type that implements error.
-type Error string
+package util
 
-// Error fulfills the error interface of this type.
-func (e Error) Error() string { return string(e) }
-
-const (
-	// ErrClosed means we couldn't complete a task because we had closed.
-	ErrClosed = Error("closed")
+import (
+	"testing"
 )
+
+func TestEasyAck1(t *testing.T) {
+	ea := NewEasyAck()
+	ea.Ack() // send the ack
+	select {
+	case <-ea.Wait(): // we got it!
+	default:
+		t.Errorf("the Ack did not arrive")
+	}
+}
+
+func TestEasyAck2(t *testing.T) {
+	ea := NewEasyAck()
+	// never send an ack
+	select {
+	case <-ea.Wait(): // we got it!
+		t.Errorf("the Ack arrived unexpectedly")
+	default:
+	}
+}
+
+func TestEasyAck3(t *testing.T) {
+	ea := NewEasyAck()
+	ea.Ack() // send the ack
+	select {
+	case <-ea.Wait(): // we got it!
+	default:
+		t.Errorf("the Ack did not arrive")
+	}
+
+	ea = NewEasyAck() // build a new one
+	ea.Ack()          // send the ack
+	select {
+	case <-ea.Wait(): // we got it!
+	default:
+		t.Errorf("the second Ack did not arrive")
+	}
+}
