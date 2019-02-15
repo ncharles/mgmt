@@ -407,8 +407,21 @@ Loop:
 		}
 
 		// pause if one was requested...
+obj.Logf("XXX: PING: %+v", vertex)
 		select {
 		case <-obj.state[vertex].pauseSignal: // channel closes
+
+obj.Logf("XXX: JUST PAUSED: %+v", vertex)
+select {
+case <-obj.state[vertex].doneChan:
+	obj.Logf("XXX: WOW CRAZY WE'RE CLOSING!: %+v", vertex)
+	panic("XXX NEWLIFEPANIC IS GOOD")
+default:
+	obj.Logf("XXX: DEFAULT LIFE IS GOOD: %+v", vertex)
+}
+obj.Logf("XXX: ABOUT TO ACK: %+v", vertex)
+
+
 			obj.state[vertex].pausedAck.Ack() // send ack
 			// we are paused now, and waiting for resume or exit...
 			select {
@@ -416,6 +429,8 @@ Loop:
 				// resumed!
 				// pass through to allow a Process to try to run
 			case <-obj.state[vertex].doneChan:
+	obj.Logf("XXX: COME ON, WE HAD TO HAVE EXITED HERE!: %+v", vertex)
+
 				// we got an exit message while paused
 				continue // loop around (DO NOT EXIT HERE!)
 			}
