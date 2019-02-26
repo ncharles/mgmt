@@ -219,6 +219,7 @@ func (obj *Coordinator) Pause() error {
 
 	obj.pausedAck = util.NewEasyAck()
 	obj.resumeSignal = make(chan struct{}) // build the resume signal
+	obj.paused = true
 	close(obj.pauseSignal)
 
 	// wait for ack (or exit signal)
@@ -228,7 +229,6 @@ func (obj *Coordinator) Pause() error {
 	case <-obj.closeChan:
 		return fmt.Errorf("closing")
 	}
-	obj.paused = true
 
 	return nil
 }
@@ -243,10 +243,9 @@ func (obj *Coordinator) Resume() {
 	}
 
 	obj.pauseSignal = make(chan struct{}) // rebuild for next pause
+	obj.paused = false
 	close(obj.resumeSignal)
 	obj.poke() // unblock and notice the resume if necessary
-
-	obj.paused = false
 
 	// no need to wait for it to resume
 	//return // implied

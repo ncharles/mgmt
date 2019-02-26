@@ -275,6 +275,7 @@ func (obj *State) Pause() error {
 
 	obj.pausedAck = util.NewEasyAck()
 	obj.resumeSignal = make(chan struct{}) // build the resume signal
+	obj.paused = true
 	close(obj.pauseSignal)
 	obj.Poke() // unblock and notice the pause if necessary
 
@@ -285,7 +286,6 @@ func (obj *State) Pause() error {
 	case <-obj.doneChan:
 		return engine.ErrClosed
 	}
-	obj.paused = true
 
 	return nil
 }
@@ -300,10 +300,9 @@ func (obj *State) Resume() {
 	}
 
 	obj.pauseSignal = make(chan struct{}) // rebuild for next pause
+	obj.paused = false
 	close(obj.resumeSignal)
 	//obj.Poke() // not needed, we're already waiting for resume
-
-	obj.paused = false
 
 	// no need to wait for it to resume
 	//return // implied
